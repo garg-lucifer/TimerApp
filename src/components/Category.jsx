@@ -18,12 +18,24 @@ export const Category = ({category}) => {
   const [isExpanded, setIsExpanded] = React.useState(false);
   const {updateTimer} = useUpdateTimer();
 
+  // Create an array of states for each timer
+  const [timerStatuses, setTimerStatuses] = React.useState(
+    timersId.map(() => TimerStatus.RUNNING),
+  );
+
   const toggleExpansion = () => {
     setIsExpanded(prevState => !prevState); // Toggle the expanded/collapsed state
   };
 
   const changeGroupTimerStatus = status => {
-    timersId.forEach(timer => updateTimer(timer, status));
+    timersId.forEach((timer, index) => {
+      updateTimer(timer, status);
+      setTimerStatuses(prevStatuses => {
+        const updatedStatuses = [...prevStatuses];
+        updatedStatuses[index] = status;
+        return updatedStatuses;
+      });
+    });
   };
 
   return (
@@ -41,30 +53,36 @@ export const Category = ({category}) => {
           <View style={styles.buttonContainer}>
             <Button
               title="Start All"
-              onPress={() => {
-                changeGroupTimerStatus(TimerStatus.RUNNING);
-              }}
+              onPress={() => changeGroupTimerStatus(TimerStatus.RUNNING)}
               isPrimary={true}
             />
             <Button
               title="Pause All"
-              onPress={() => {
-                changeGroupTimerStatus(TimerStatus.PAUSED);
-              }}
+              onPress={() => changeGroupTimerStatus(TimerStatus.PAUSED)}
               isPrimary={false}
             />
             <Button
               title="Reset All"
-              onPress={() => {
-                changeGroupTimerStatus(TimerStatus.RESET);
-              }}
+              onPress={() => changeGroupTimerStatus(TimerStatus.RESET)}
               isPrimary={true}
             />
           </View>
 
           <FlatList
             data={timersId}
-            renderItem={({item}) => <TimerTask timerTaskId={item} />}
+            renderItem={({item, index}) => (
+              <TimerTask
+                timerTaskId={item}
+                timerStatus={timerStatuses[index]}
+                setTimerStatus={newStatus => {
+                  setTimerStatuses(prevStatuses => {
+                    const updatedStatuses = [...prevStatuses];
+                    updatedStatuses[index] = newStatus;
+                    return updatedStatuses;
+                  });
+                }}
+              />
+            )}
             keyExtractor={item => item}
             style={styles.listStyle}
           />

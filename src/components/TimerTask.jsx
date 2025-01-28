@@ -6,8 +6,8 @@ import {useUpdateTimer} from '../hooks/useUpdateTimer';
 import {useGetTimer} from '../hooks/useGetTimer';
 import {CongratulationModal} from './CongratulationModal';
 
-export const TimerTask = ({timerTaskId}) => {
-  const {timerTask, isJustCompleted} = useGetTimer(timerTaskId);
+export const TimerTask = ({timerTaskId, timerStatus, setTimerStatus}) => {
+  const {timerTask, isJustCompleted} = useGetTimer(timerTaskId, timerStatus);
   const isCompleted = timerTask.currentDuration === 0;
   const [isModalVisible, setIsModalVisible] = React.useState(false);
 
@@ -54,12 +54,18 @@ export const TimerTask = ({timerTaskId}) => {
           <Button
             title={timerTask.status === TimerStatus.PAUSED ? 'Start' : 'Pause'}
             onPress={() => {
+              const oldStatus = timerTask.status;
               updateTimer(
                 timerTask.id,
-                timerTask.status === TimerStatus.PAUSED
+                oldStatus === TimerStatus.PAUSED
                   ? TimerStatus.RUNNING
                   : TimerStatus.PAUSED,
               );
+              if (oldStatus === TimerStatus.PAUSED) {
+                setTimerStatus(TimerStatus.RUNNING);
+              } else {
+                setTimerStatus(TimerStatus.PAUSED);
+              }
             }}
             isPrimary={true}
           />
@@ -67,6 +73,7 @@ export const TimerTask = ({timerTaskId}) => {
             title={'Reset'}
             onPress={() => {
               updateTimer(timerTask.id, TimerStatus.RESET);
+              setTimerStatus(TimerStatus.RESET);
             }}
             isPrimary={false}
           />
